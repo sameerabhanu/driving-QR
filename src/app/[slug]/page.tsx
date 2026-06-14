@@ -50,9 +50,9 @@ export default async function SchoolLandingPage({ params }: SchoolPageProps) {
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
           <div className="px-6 pt-10 pb-6 text-center">
             <div className="reveal mx-auto mb-6 w-36 h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center shadow-lg shadow-slate-900/30 ring-1 ring-white/10">
-              <svg className="w-28 h-28 text-white" viewBox="0 0 64 44" fill="none">
+              <svg className="h-14 w-auto text-white" viewBox="2 14 60 26" fill="none">
                 <path
-                  d="M6 32h52"
+                  d="M10 32h44"
                   stroke="currentColor"
                   strokeWidth={2}
                   strokeLinecap="round"
