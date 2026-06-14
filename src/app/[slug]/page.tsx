@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: SchoolPageProps): Promise<Met
   };
 }
 
-const WHATSAPP_NUMBER = "8333027544";
+const WHATSAPP_NUMBER = "918333027544";
 
 export default async function SchoolLandingPage({ params }: SchoolPageProps) {
   const { slug } = await params;

@@ -29,7 +29,7 @@ const features = [
 const WHATSAPP_MESSAGE = encodeURIComponent(
   "Hi, I would like to know more about launching a QR landing page for my driving school."
 );
-const WHATSAPP_NUMBER = "8333027544";
+const WHATSAPP_NUMBER = "918333027544";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
 
 export default function HomePage() {
