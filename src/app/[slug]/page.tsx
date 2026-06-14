@@ -28,9 +28,7 @@ export async function generateMetadata({ params }: SchoolPageProps): Promise<Met
   };
 }
 
-function formatWhatsAppNumber(number: string): string {
-  return number.replace(/[\s()-]/g, "").replace(/^\+/, "");
-}
+const WHATSAPP_NUMBER = "8333027544";
 
 export default async function SchoolLandingPage({ params }: SchoolPageProps) {
   const { slug } = await params;
@@ -40,11 +38,10 @@ export default async function SchoolLandingPage({ params }: SchoolPageProps) {
     notFound();
   }
 
-  const whatsappNumber = formatWhatsAppNumber(school.whatsappNumber);
   const whatsappMessage = encodeURIComponent(
     "Hi, I would like to know more about your driving classes."
   );
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`;
   const phoneUrl = `tel:${school.phoneNumber.replace(/\s/g, "")}`;
 
   return (
