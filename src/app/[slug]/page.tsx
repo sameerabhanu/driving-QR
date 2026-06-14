@@ -49,11 +49,40 @@ export default async function SchoolLandingPage({ params }: SchoolPageProps) {
       <div className="w-full max-w-[500px]">
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
           <div className="px-6 pt-10 pb-6 text-center">
-            <div className="reveal mx-auto mb-6 w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-600/30 ring-1 ring-white/40">
-              <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <circle cx="12" cy="12" r="2.6" />
-                <path d="M12 3v6.4M4.6 16.5l5.2-3M19.4 16.5l-5.2-3" />
+            <div className="reveal mx-auto mb-6 w-36 h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center shadow-lg shadow-slate-900/30 ring-1 ring-white/10">
+              <svg className="w-28 h-28 text-white" viewBox="0 0 64 44" fill="none">
+                <path
+                  d="M6 32h52"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  opacity={0.35}
+                />
+                <path
+                  d="M8 32c-1.6 0-2.6-1.4-2.2-2.9l1.3-4.7c.4-1.4 1.6-2.4 3.1-2.6l6.4-.7 5.2-4.7c1.2-1.1 2.7-1.7 4.3-1.7h10.8c1.9 0 3.7.8 4.9 2.3l3 3.6 8 1.4c2 .4 3.5 2.1 3.5 4.2v3.6c0 1.3-1 2.4-2.3 2.4"
+                  fill="currentColor"
+                  fillOpacity={0.16}
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M24 16.7 25.5 23M37 15.5 39.5 23"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  opacity={0.6}
+                />
+                <g className="wheel-spin">
+                  <circle cx="20" cy="32" r="6" fill="#0f172a" stroke="currentColor" strokeWidth={2} />
+                  <circle cx="20" cy="32" r="1.6" fill="currentColor" />
+                  <path d="M20 27.5v9M15.5 32h9M16.8 28.8l6.4 6.4M23.2 28.8l-6.4 6.4" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" />
+                </g>
+                <g className="wheel-spin">
+                  <circle cx="46" cy="32" r="6" fill="#0f172a" stroke="currentColor" strokeWidth={2} />
+                  <circle cx="46" cy="32" r="1.6" fill="currentColor" />
+                  <path d="M46 27.5v9M41.5 32h9M42.8 28.8l6.4 6.4M49.2 28.8l-6.4 6.4" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" />
+                </g>
               </svg>
             </div>
 
