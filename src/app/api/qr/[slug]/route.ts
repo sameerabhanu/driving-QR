@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { schools } from "@/db/schema";
 import { generateQrBuffer } from "@/lib/qr";
+import { generatePoster } from "@/lib/poster";
 
 export async function GET(
   request: NextRequest,
@@ -22,6 +23,14 @@ export async function GET(
     return NextResponse.json({ error: "School not found" }, { status: 404 });
   }
 
+  const download = request.nextUrl.searchParams.get("download") === "1";
+
+  // For downloads, deliver a finished, lead-attracting marketing poster
+  // with the QR code embedded instead of the bare QR image.
+  if (download) {
+    return generatePoster(slug, school.schoolName);
+  }
+
   let buffer: Buffer;
 
   try {
@@ -31,15 +40,10 @@ export async function GET(
     buffer = await generateQrBuffer(slug);
   }
 
-  const download = request.nextUrl.searchParams.get("download") === "1";
   const headers: HeadersInit = {
     "Content-Type": "image/png",
     "Cache-Control": "public, max-age=31536000, immutable",
   };
-
-  if (download) {
-    headers["Content-Disposition"] = `attachment; filename="${slug}-qr-code.png"`;
-  }
 
   return new NextResponse(new Uint8Array(buffer), { headers });
 }
