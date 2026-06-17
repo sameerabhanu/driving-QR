@@ -45,13 +45,6 @@ export async function shopLoginAction(
     return { success: false, error: "Invalid name or PIN" };
   }
 
-  if (shop.status !== "active") {
-    return {
-      success: false,
-      error: "Your subscription is suspended. Please contact support.",
-    };
-  }
-
   await setShopSession(shop.id);
   redirect("/admin");
 }

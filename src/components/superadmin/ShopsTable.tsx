@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import type { ShopWithStats } from "@/actions/shops";
 import {
-  setShopStatusAction,
   addShopCreditsAction,
   deleteShopAction,
 } from "@/actions/shops";
@@ -74,7 +73,6 @@ export function ShopsTable({ shops }: ShopsTableProps) {
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Pages</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Credits</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Expiring Next Month</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
@@ -97,9 +95,6 @@ export function ShopsTable({ shops }: ShopsTableProps) {
                     </td>
                     <td className="px-4 py-3 text-center text-sm text-gray-700">
                       {shop.expiringNextMonth}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={shop.status} />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <ShopActions
@@ -124,7 +119,6 @@ export function ShopsTable({ shops }: ShopsTableProps) {
                     <h3 className="font-semibold text-gray-900">{shop.shopName}</h3>
                     <p className="text-sm text-gray-500">{shop.ownerName}</p>
                   </div>
-                  <StatusBadge status={shop.status} />
                 </div>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p><span className="text-gray-400">PIN:</span> <code className="bg-gray-100 px-1.5 rounded">{shop.pin}</code></p>
@@ -146,18 +140,6 @@ export function ShopsTable({ shops }: ShopsTableProps) {
         </>
       )}
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const isActive = status === "active";
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-        }`}
-    >
-      {isActive ? "Active" : "Suspended"}
-    </span>
   );
 }
 
@@ -191,15 +173,6 @@ function ShopActions({
   return (
     <div className="flex flex-wrap items-center gap-2 justify-end">
       <AddCreditsForm shopId={shop.id} isPending={isPending} run={run} />
-      {shop.status === "active" ? (
-        <Button variant="secondary" size="sm" onClick={() => run(() => setShopStatusAction(shop.id, "suspended"))}>
-          Suspend
-        </Button>
-      ) : (
-        <Button variant="primary" size="sm" onClick={() => run(() => setShopStatusAction(shop.id, "active"))}>
-          Activate
-        </Button>
-      )}
       <Button variant="danger" size="sm" onClick={() => setDeleteId(shop.id)}>
         Delete
       </Button>

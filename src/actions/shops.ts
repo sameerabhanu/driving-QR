@@ -83,24 +83,6 @@ export async function createShopAction(
   }
 }
 
-export async function setShopStatusAction(
-  id: string,
-  status: "active" | "suspended"
-): Promise<ActionResult> {
-  try {
-    await requireSuper();
-    await db.update(shops).set({ status }).where(eq(shops.id, id));
-    revalidatePath("/superadmin");
-    return { success: true };
-  } catch (error) {
-    console.error("Set shop status error:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to update shop",
-    };
-  }
-}
-
 export async function deleteShopAction(id: string): Promise<ActionResult> {
   try {
     await requireSuper();
@@ -198,8 +180,6 @@ export async function getSuperDashboardStats() {
     .where(eq(creditTransactions.kind, "purchase"));
 
   const totalShops = shopsWithStats.length;
-  const activeShops = shopsWithStats.filter((s) => s.status === "active").length;
-  const suspendedShops = shopsWithStats.filter((s) => s.status === "suspended").length;
   const totalPages = shopsWithStats.reduce((sum, s) => sum + s.pagesTotal, 0);
   const totalCreditsAvailable = shopsWithStats.reduce(
     (sum, s) => sum + s.availableCredits,
@@ -212,8 +192,6 @@ export async function getSuperDashboardStats() {
 
   return {
     totalShops,
-    activeShops,
-    suspendedShops,
     totalPages,
     totalCreditsAvailable,
     expiringNextMonth,

@@ -1,8 +1,6 @@
 interface SuperStatsCardsProps {
   stats: {
     totalShops: number;
-    activeShops: number;
-    suspendedShops: number;
     totalPages: number;
     expiringNextMonth: number;
   };
@@ -13,7 +11,7 @@ export function SuperStatsCards({ stats }: SuperStatsCardsProps) {
     {
       label: "Total Shops",
       value: String(stats.totalShops),
-      sub: `${stats.activeShops}\u00a0active · ${stats.suspendedShops}\u00a0suspended`,
+      sub: `${stats.totalShops === 1 ? "shop" : "shops"} onboarded`,
       color: "bg-brand-50 text-brand-700 border-brand-100",
     },
     {

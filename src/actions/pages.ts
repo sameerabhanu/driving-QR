@@ -383,16 +383,15 @@ export async function getPageById(id: string): Promise<Page | null> {
 }
 
 // Public lookup for the master template. Returns null if the page does not
-// exist, has expired, or its parent shop is suspended.
+// exist or has expired.
 export async function getPublicPageByCode(shortCode: string): Promise<Page | null> {
   const [row] = await db
-    .select({ page: pages, shopStatus: shops.status })
+    .select({ page: pages })
     .from(pages)
-    .innerJoin(shops, eq(pages.shopId, shops.id))
     .where(and(eq(pages.shortCode, shortCode), gte(pages.expiresAt, new Date())))
     .limit(1);
 
-  if (!row || row.shopStatus !== "active") return null;
+  if (!row) return null;
   return row.page;
 }
 
