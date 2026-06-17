@@ -55,6 +55,7 @@ export function CreateShopClient() {
 
       <Input label="Shop Name" name="shopName" required placeholder="e.g. Sri Sai Xerox & Prints" />
       <Input label="Owner Name" name="ownerName" required placeholder="e.g. Ramesh Kumar" />
+      <Input label="Owner Phone Number" name="ownerPhone" type="tel" required placeholder="e.g. +91 98765 43210" />
 
       <p className="text-xs text-gray-500">
         A unique 4-digit login PIN will be auto-generated when you create the shop.

@@ -1,10 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { shops } from "@/db/schema";
-import { pinLoginSchema } from "@/lib/validations";
+import { shopLoginSchema, pinLoginSchema } from "@/lib/validations";
 import {
   setShopSession,
   clearShopSession,
@@ -18,25 +18,31 @@ export type ActionResult = {
   error?: string;
 };
 
-// Reseller shop logs in with their globally-unique PIN.
+// Reseller shop logs in with their owner name + PIN. A PIN is only unique per
+// owner name, so both must match the same shop record.
 export async function shopLoginAction(
   _prevState: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  const parsed = pinLoginSchema.safeParse({ pin: formData.get("pin") });
+  const parsed = shopLoginSchema.safeParse({
+    ownerName: formData.get("ownerName"),
+    pin: formData.get("pin"),
+  });
 
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid PIN" };
+    return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid details" };
   }
 
   const [shop] = await db
     .select()
     .from(shops)
-    .where(eq(shops.pin, parsed.data.pin))
+    .where(
+      and(eq(shops.ownerName, parsed.data.ownerName), eq(shops.pin, parsed.data.pin))
+    )
     .limit(1);
 
   if (!shop) {
-    return { success: false, error: "Invalid PIN" };
+    return { success: false, error: "Invalid name or PIN" };
   }
 
   if (shop.status !== "active") {

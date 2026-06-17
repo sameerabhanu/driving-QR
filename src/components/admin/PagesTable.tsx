@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { Page } from "@/db/schema";
-import { deletePageAction } from "@/actions/pages";
+import { deletePageAction, renewPageAction } from "@/actions/pages";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -25,6 +25,16 @@ export function PagesTable({ pages }: PagesTableProps) {
         setDeleteId(null);
       } else {
         setError(result.error ?? "Failed to delete page");
+      }
+    });
+  };
+
+  const handleRenew = (id: string) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await renewPageAction(id);
+      if (!result.success) {
+        setError(result.error ?? "Failed to renew page");
       }
     });
   };
@@ -61,6 +71,7 @@ export function PagesTable({ pages }: PagesTableProps) {
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Code</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Expires</th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -73,12 +84,14 @@ export function PagesTable({ pages }: PagesTableProps) {
                   <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{page.shortCode}</code>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-600">{formatDate(page.createdAt)}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{formatDate(page.expiresAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <PageActions
                     page={page}
                     deleteId={deleteId}
                     setDeleteId={setDeleteId}
                     onDelete={handleDelete}
+                    onRenew={handleRenew}
                     isPending={isPending}
                   />
                 </td>
@@ -101,11 +114,15 @@ export function PagesTable({ pages }: PagesTableProps) {
             <p className="text-sm text-gray-600">
               <span className="text-gray-400">Created:</span> {formatDate(page.createdAt)}
             </p>
+            <p className="text-sm text-gray-600">
+              <span className="text-gray-400">Expires:</span> {formatDate(page.expiresAt)}
+            </p>
             <PageActions
               page={page}
               deleteId={deleteId}
               setDeleteId={setDeleteId}
               onDelete={handleDelete}
+              onRenew={handleRenew}
               isPending={isPending}
             />
           </div>
@@ -120,12 +137,14 @@ function PageActions({
   deleteId,
   setDeleteId,
   onDelete,
+  onRenew,
   isPending,
 }: {
   page: Page;
   deleteId: string | null;
   setDeleteId: (id: string | null) => void;
   onDelete: (id: string) => void;
+  onRenew: (id: string) => void;
   isPending: boolean;
 }) {
   if (deleteId === page.id) {
@@ -147,6 +166,9 @@ function PageActions({
       <Link href={`/admin/pages/${page.id}/edit`}>
         <Button variant="secondary" size="sm">Edit</Button>
       </Link>
+      <Button variant="primary" size="sm" loading={isPending} onClick={() => onRenew(page.id)}>
+        Renew (1 Credit)
+      </Button>
       <Button variant="danger" size="sm" onClick={() => setDeleteId(page.id)}>
         Delete
       </Button>

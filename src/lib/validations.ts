@@ -58,9 +58,24 @@ export const shopSchema = z.object({
     .string()
     .min(2, "Owner name must be at least 2 characters")
     .max(255, "Owner name is too long"),
+  ownerPhone: z
+    .string()
+    .trim()
+    .min(6, "Enter a valid phone number")
+    .max(50, "Number is too long")
+    .regex(/^[+\d\s()-]+$/, "Invalid number format"),
 });
 
 export const pinLoginSchema = z.object({
+  pin: z.string().regex(/^\d{4,6}$/, "Enter your PIN"),
+});
+
+export const shopLoginSchema = z.object({
+  ownerName: z
+    .string()
+    .trim()
+    .min(2, "Enter your name")
+    .max(255, "Name is too long"),
   pin: z.string().regex(/^\d{4,6}$/, "Enter your PIN"),
 });
 

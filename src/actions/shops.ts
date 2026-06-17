@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { shops, pages, billing, type Shop } from "@/db/schema";
+import { shops, pages, creditTransactions, type Shop } from "@/db/schema";
 import { shopSchema } from "@/lib/validations";
 import { isSuperAuthenticated } from "@/lib/auth";
-import { computeAmountDue, getMonthKey, isBillable } from "@/lib/utils";
+import { amountFromCredits } from "@/lib/utils";
 
 export type ActionResult<T = undefined> = {
   success: boolean;
@@ -21,22 +21,19 @@ async function requireSuper(): Promise<void> {
 }
 
 export interface ShopWithStats extends Shop {
-  pagesThisMonth: number;
-  pagesLastMonth: number;
   pagesTotal: number;
-  billable: boolean;
-  amountDue: number;
-  paid: boolean;
+  expiringNextMonth: number;
 }
 
-async function generateUniqueShopPin(): Promise<string> {
-  // 4-digit PIN space: 1000-9999. Retry to avoid collisions.
+async function generateUniqueShopPin(ownerName: string): Promise<string> {
+  // 4-digit PIN space: 1000-9999. A PIN only needs to be unique per owner name,
+  // so we only avoid collisions with the same owner.
   for (let attempt = 0; attempt < 200; attempt++) {
     const pin = String(Math.floor(1000 + Math.random() * 9000));
     const [existing] = await db
       .select({ id: shops.id })
       .from(shops)
-      .where(eq(shops.pin, pin))
+      .where(and(eq(shops.ownerName, ownerName), eq(shops.pin, pin)))
       .limit(1);
 
     if (!existing) return pin;
@@ -55,19 +52,21 @@ export async function createShopAction(
     const parsed = shopSchema.safeParse({
       shopName: formData.get("shopName"),
       ownerName: formData.get("ownerName"),
+      ownerPhone: formData.get("ownerPhone"),
     });
 
     if (!parsed.success) {
       return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid input" };
     }
 
-    const pin = await generateUniqueShopPin();
+    const pin = await generateUniqueShopPin(parsed.data.ownerName);
 
     const [shop] = await db
       .insert(shops)
       .values({
         shopName: parsed.data.shopName,
         ownerName: parsed.data.ownerName,
+        ownerPhone: parsed.data.ownerPhone,
         pin,
       })
       .returning();
@@ -117,136 +116,108 @@ export async function deleteShopAction(id: string): Promise<ActionResult> {
   }
 }
 
-// Marks (or unmarks) the current month as paid for a shop. The amount is a
-// snapshot of what the shop owes this month based on its page activity.
-export async function setBillingPaidAction(
+// Adds prepaid credits to a shop and records a purchase in the ledger.
+export async function addShopCreditsAction(
   shopId: string,
-  paid: boolean
+  credits: number
 ): Promise<ActionResult> {
   try {
     await requireSuper();
 
-    const month = getMonthKey();
-    const { startOfMonth, startOfNextMonth } = monthBounds(new Date());
-
-    const [row] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(pages)
-      .where(
-        and(
-          eq(pages.shopId, shopId),
-          gte(pages.createdAt, startOfMonth),
-          lt(pages.createdAt, startOfNextMonth)
-        )
-      );
-
-    const pagesCount = row?.count ?? 0;
-    const amountDue = computeAmountDue(pagesCount);
+    if (!Number.isInteger(credits) || credits <= 0) {
+      return { success: false, error: "Enter a positive number of credits" };
+    }
 
     await db
-      .insert(billing)
-      .values({
-        shopId,
-        month,
-        pagesCount,
-        amountDue,
-        paid,
-        paidAt: paid ? new Date() : null,
-      })
-      .onConflictDoUpdate({
-        target: [billing.shopId, billing.month],
-        set: { pagesCount, amountDue, paid, paidAt: paid ? new Date() : null },
-      });
+      .update(shops)
+      .set({ availableCredits: sql`${shops.availableCredits} + ${credits}` })
+      .where(eq(shops.id, shopId));
+
+    await db.insert(creditTransactions).values({
+      shopId,
+      kind: "purchase",
+      creditsDelta: credits,
+      amountInr: amountFromCredits(credits),
+    });
 
     revalidatePath("/superadmin");
     return { success: true };
   } catch (error) {
-    console.error("Set billing paid error:", error);
+    console.error("Add shop credits error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to update billing",
+      error: error instanceof Error ? error.message : "Failed to add credits",
     };
   }
-}
-
-function monthBounds(now: Date) {
-  return {
-    startOfMonth: new Date(now.getFullYear(), now.getMonth(), 1),
-    startOfNextMonth: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-    startOfLastMonth: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-  };
 }
 
 export async function getShopsWithStats(): Promise<ShopWithStats[]> {
   await requireSuper();
 
   const now = new Date();
-  const { startOfMonth, startOfNextMonth, startOfLastMonth } = monthBounds(now);
-  const month = getMonthKey(now);
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const startOfMonthAfter = new Date(now.getFullYear(), now.getMonth() + 2, 1);
 
   const allShops = await db.select().from(shops).orderBy(shops.createdAt);
 
-  const thisMonthCounts = await db
-    .select({ shopId: pages.shopId, count: sql<number>`count(*)::int` })
-    .from(pages)
-    .where(and(gte(pages.createdAt, startOfMonth), lt(pages.createdAt, startOfNextMonth)))
-    .groupBy(pages.shopId);
-
-  const lastMonthCounts = await db
-    .select({ shopId: pages.shopId, count: sql<number>`count(*)::int` })
-    .from(pages)
-    .where(and(gte(pages.createdAt, startOfLastMonth), lt(pages.createdAt, startOfMonth)))
-    .groupBy(pages.shopId);
-
+  // Active (non-expired) page counts per shop.
   const totalCounts = await db
     .select({ shopId: pages.shopId, count: sql<number>`count(*)::int` })
     .from(pages)
+    .where(gte(pages.expiresAt, now))
     .groupBy(pages.shopId);
 
-  const paidRows = await db
-    .select({ shopId: billing.shopId, paid: billing.paid })
-    .from(billing)
-    .where(eq(billing.month, month));
+  // Pages expiring during the next calendar month, per shop.
+  const expiringCounts = await db
+    .select({ shopId: pages.shopId, count: sql<number>`count(*)::int` })
+    .from(pages)
+    .where(
+      and(gte(pages.expiresAt, startOfNextMonth), lt(pages.expiresAt, startOfMonthAfter))
+    )
+    .groupBy(pages.shopId);
 
-  const thisMap = new Map(thisMonthCounts.map((r) => [r.shopId, r.count]));
-  const lastMap = new Map(lastMonthCounts.map((r) => [r.shopId, r.count]));
   const totalMap = new Map(totalCounts.map((r) => [r.shopId, r.count]));
-  const paidMap = new Map(paidRows.map((r) => [r.shopId, r.paid]));
+  const expiringMap = new Map(expiringCounts.map((r) => [r.shopId, r.count]));
 
-  return allShops.map((shop) => {
-    const pagesThisMonth = thisMap.get(shop.id) ?? 0;
-    return {
-      ...shop,
-      pagesThisMonth,
-      pagesLastMonth: lastMap.get(shop.id) ?? 0,
-      pagesTotal: totalMap.get(shop.id) ?? 0,
-      billable: isBillable(pagesThisMonth),
-      amountDue: computeAmountDue(pagesThisMonth),
-      paid: paidMap.get(shop.id) ?? false,
-    };
-  });
+  return allShops.map((shop) => ({
+    ...shop,
+    pagesTotal: totalMap.get(shop.id) ?? 0,
+    expiringNextMonth: expiringMap.get(shop.id) ?? 0,
+  }));
 }
 
 export async function getSuperDashboardStats() {
   const shopsWithStats = await getShopsWithStats();
 
+  const [creditSalesRow] = await db
+    .select({
+      soldCredits: sql<number>`coalesce(sum(${creditTransactions.creditsDelta}), 0)::int`,
+      revenue: sql<number>`coalesce(sum(${creditTransactions.amountInr}), 0)::int`,
+    })
+    .from(creditTransactions)
+    .where(eq(creditTransactions.kind, "purchase"));
+
   const totalShops = shopsWithStats.length;
   const activeShops = shopsWithStats.filter((s) => s.status === "active").length;
   const suspendedShops = shopsWithStats.filter((s) => s.status === "suspended").length;
-  const billableShops = shopsWithStats.filter((s) => s.billable).length;
-  const pagesThisMonth = shopsWithStats.reduce((sum, s) => sum + s.pagesThisMonth, 0);
-  const revenueThisMonth = shopsWithStats.reduce((sum, s) => sum + s.amountDue, 0);
-  const collectedThisMonth = shopsWithStats
-    .filter((s) => s.paid)
-    .reduce((sum, s) => sum + s.amountDue, 0);
+  const totalPages = shopsWithStats.reduce((sum, s) => sum + s.pagesTotal, 0);
+  const totalCreditsAvailable = shopsWithStats.reduce(
+    (sum, s) => sum + s.availableCredits,
+    0
+  );
+  const expiringNextMonth = shopsWithStats.reduce(
+    (sum, s) => sum + s.expiringNextMonth,
+    0
+  );
 
   return {
     totalShops,
     activeShops,
     suspendedShops,
-    billableShops,
-    pagesThisMonth,
-    revenueThisMonth,
-    collectedThisMonth,
+    totalPages,
+    totalCreditsAvailable,
+    expiringNextMonth,
+    soldCredits: creditSalesRow?.soldCredits ?? 0,
+    lifetimeRevenue: creditSalesRow?.revenue ?? 0,
   };
 }

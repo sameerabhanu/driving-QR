@@ -37,7 +37,7 @@ export async function getShopSessionId(): Promise<string | null> {
 }
 
 // Returns the authenticated, still-active shop, or null. A suspended shop is
-// treated as logged out so it cannot manage pages while unpaid.
+// treated as logged out so it cannot manage pages.
 export async function getCurrentShop(): Promise<Shop | null> {
   const shopId = await getShopSessionId();
   if (!shopId) return null;

@@ -14,7 +14,7 @@ export default async function SuperAdminPage() {
   ]);
 
   return (
-    <SuperShell title="Shops" description="Manage resellers, billing, and subscriptions">
+    <SuperShell title="Shops" description="Manage resellers, credits, and subscriptions">
       <SuperStatsCards stats={stats} />
       <ShopsTable shops={shops} />
     </SuperShell>

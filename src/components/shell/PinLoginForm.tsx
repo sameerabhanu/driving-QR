@@ -10,16 +10,41 @@ interface PinLoginFormProps {
   action: (prevState: LoginResult, formData: FormData) => Promise<LoginResult>;
   label?: string;
   maxLength?: number;
+  showName?: boolean;
+  nameLabel?: string;
 }
 
 const initialState: LoginResult = { success: false };
 
-export function PinLoginForm({ action, label = "PIN", maxLength = 6 }: PinLoginFormProps) {
+export function PinLoginForm({
+  action,
+  label = "PIN",
+  maxLength = 6,
+  showName = false,
+  nameLabel = "Name",
+}: PinLoginFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className="space-y-5">
       {state.error && <Alert variant="error" message={state.error} />}
+
+      {showName && (
+        <div className="space-y-1.5">
+          <label htmlFor="ownerName" className="block text-sm font-medium text-gray-700">
+            {nameLabel}
+          </label>
+          <input
+            id="ownerName"
+            name="ownerName"
+            type="text"
+            autoComplete="name"
+            required
+            placeholder="Your name"
+            className="block w-full rounded-lg border border-gray-300 px-3 py-3 text-base focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          />
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <label htmlFor="pin" className="block text-sm font-medium text-gray-700">

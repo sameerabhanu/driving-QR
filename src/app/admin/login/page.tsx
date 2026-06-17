@@ -16,11 +16,17 @@ export default function AdminLoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Reseller Login</h1>
-          <p className="mt-2 text-sm text-gray-500">Enter your PIN to manage pages</p>
+          <p className="mt-2 text-sm text-gray-500">Enter your name and PIN to manage pages</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <PinLoginForm action={shopLoginAction} label="Shop PIN" maxLength={6} />
+          <PinLoginForm
+            action={shopLoginAction}
+            label="Shop PIN"
+            maxLength={6}
+            showName
+            nameLabel="Your Name"
+          />
         </div>
       </div>
     </div>

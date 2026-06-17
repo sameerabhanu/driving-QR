@@ -1,7 +1,31 @@
-// Billing rule: a shop's first 5 client pages in a month are free; the 6th page
-// (and beyond) makes that month billable at the flat monthly fee.
-export const BILLING_FREE_LIMIT = 5;
-export const MONTHLY_FEE = 1000;
+// Credit model: shops buy prepaid credits in packs. Each page create OR renew
+// consumes 1 credit. 100 credits = ₹2000 (₹20 per credit).
+export const CREDITS_PER_PACK = 100;
+export const PACK_PRICE_INR = 2000;
+export const CREDIT_UNIT_PRICE_INR = PACK_PRICE_INR / CREDITS_PER_PACK; // ₹20
+
+export function creditsFromPacks(packs: number): number {
+  return packs * CREDITS_PER_PACK;
+}
+
+export function amountFromPacks(packs: number): number {
+  return packs * PACK_PRICE_INR;
+}
+
+export function amountFromCredits(credits: number): number {
+  return credits * CREDIT_UNIT_PRICE_INR;
+}
+
+// Computes a page's expiry: 2 years after the anchor, snapped to the 1st of a
+// month (UTC). If the anchor is already the 1st, keep that month; otherwise roll
+// to the 1st of the next month — then add 2 years.
+export function computeExpiryDate(anchor: Date = new Date()): Date {
+  const year = anchor.getUTCFullYear();
+  const month = anchor.getUTCMonth();
+  const day = anchor.getUTCDate();
+  const baseMonth = day === 1 ? month : month + 1;
+  return new Date(Date.UTC(year + 2, baseMonth, 1, 0, 0, 0, 0));
+}
 
 const SHORT_CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"; // no look-alikes
 const SHORT_CODE_LENGTH = 7;
@@ -17,20 +41,11 @@ export function generateShortCode(length: number = SHORT_CODE_LENGTH): string {
   return code;
 }
 
-// "YYYY-MM" key for a given date, used as the billing period identifier.
+// "YYYY-MM" key for a given date, used as the month identifier.
 export function getMonthKey(date: Date = new Date()): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
-}
-
-// A page is billable in a month once the shop exceeds the free page limit.
-export function isBillable(pageCount: number): boolean {
-  return pageCount > BILLING_FREE_LIMIT;
-}
-
-export function computeAmountDue(pageCount: number): number {
-  return isBillable(pageCount) ? MONTHLY_FEE : 0;
 }
 
 export function formatCurrency(amount: number): string {
