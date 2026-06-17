@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { pages } from "@/db/schema";
 import { generateQrBuffer } from "@/lib/qr";
-import { generatePoster } from "@/lib/poster";
 
 export async function GET(
   request: NextRequest,
@@ -25,12 +24,6 @@ export async function GET(
 
   const download = request.nextUrl.searchParams.get("download") === "1";
 
-  // For downloads, deliver a finished, white-label marketing poster with the
-  // QR code embedded instead of the bare QR image.
-  if (download) {
-    return generatePoster(code, page.businessName, page.tagline);
-  }
-
   let buffer: Buffer;
 
   try {
@@ -42,8 +35,15 @@ export async function GET(
 
   const headers: HeadersInit = {
     "Content-Type": "image/png",
-    "Cache-Control": "public, max-age=31536000, immutable",
   };
+
+  if (download) {
+    // Deliver only the plain QR code (which redirects to the slug page URL).
+    headers["Content-Disposition"] = `attachment; filename="qr-${code}.png"`;
+    headers["Cache-Control"] = "no-store";
+  } else {
+    headers["Cache-Control"] = "public, max-age=31536000, immutable";
+  }
 
   return new NextResponse(new Uint8Array(buffer), { headers });
 }

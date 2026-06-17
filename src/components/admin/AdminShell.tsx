@@ -4,6 +4,7 @@ import { shopLogoutAction } from "@/actions/auth";
 const navItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/pages/new", label: "Add Page", icon: "plus" },
+  { href: "/admin/expiring", label: "Expiring Pages", icon: "calendar" },
 ];
 
 interface AdminShellProps {

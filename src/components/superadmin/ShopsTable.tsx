@@ -65,84 +65,84 @@ export function ShopsTable({ shops }: ShopsTableProps) {
         </div>
       ) : (
         <>
-      <div className="hidden lg:block rounded-xl border border-gray-200 bg-white overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Shop</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">PIN</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Pages</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Credits</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Expiring Next Month</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredShops.map((shop) => (
-              <tr key={shop.id} className="hover:bg-gray-50 align-top">
-                <td className="px-4 py-3">
-                  <p className="text-sm font-medium text-gray-900">{shop.shopName}</p>
-                  <p className="text-xs text-gray-500">{shop.ownerName}</p>
-                  <p className="text-xs text-gray-400">{shop.ownerPhone || "—"}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <code className="text-sm bg-gray-100 px-1.5 py-0.5 rounded">{shop.pin}</code>
-                </td>
-                <td className="px-4 py-3 text-center text-sm text-gray-700">
-                  {shop.pagesTotal}
-                </td>
-                <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
-                  {shop.availableCredits}
-                </td>
-                <td className="px-4 py-3 text-center text-sm text-gray-700">
-                  {shop.expiringNextMonth}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={shop.status} />
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <ShopActions
-                    shop={shop}
-                    deleteId={deleteId}
-                    setDeleteId={setDeleteId}
-                    isPending={isPending}
-                    run={run}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="lg:hidden space-y-4">
-        {filteredShops.map((shop) => (
-          <div key={shop.id} className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-semibold text-gray-900">{shop.shopName}</h3>
-                <p className="text-sm text-gray-500">{shop.ownerName}</p>
-              </div>
-              <StatusBadge status={shop.status} />
-            </div>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="text-gray-400">PIN:</span> <code className="bg-gray-100 px-1.5 rounded">{shop.pin}</code></p>
-              <p><span className="text-gray-400">Phone:</span> {shop.ownerPhone || "—"}</p>
-              <p><span className="text-gray-400">Pages:</span> {shop.pagesTotal}</p>
-              <p><span className="text-gray-400">Credits:</span> {shop.availableCredits}</p>
-              <p><span className="text-gray-400">Expiring next month:</span> {shop.expiringNextMonth}</p>
-            </div>
-            <ShopActions
-              shop={shop}
-              deleteId={deleteId}
-              setDeleteId={setDeleteId}
-              isPending={isPending}
-              run={run}
-            />
+          <div className="hidden lg:block rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Shop</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">PIN</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Pages</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Credits</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Expiring Next Month</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredShops.map((shop) => (
+                  <tr key={shop.id} className="hover:bg-gray-50 align-top">
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium text-gray-900">{shop.shopName}</p>
+                      <p className="text-xs text-gray-500">{shop.ownerName}</p>
+                      <p className="text-xs text-gray-400">{shop.ownerPhone || "—"}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <code className="text-sm bg-gray-100 px-1.5 py-0.5 rounded">{shop.pin}</code>
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {shop.pagesTotal}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                      {shop.availableCredits}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {shop.expiringNextMonth}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={shop.status} />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <ShopActions
+                        shop={shop}
+                        deleteId={deleteId}
+                        setDeleteId={setDeleteId}
+                        isPending={isPending}
+                        run={run}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+
+          <div className="lg:hidden space-y-4">
+            {filteredShops.map((shop) => (
+              <div key={shop.id} className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{shop.shopName}</h3>
+                    <p className="text-sm text-gray-500">{shop.ownerName}</p>
+                  </div>
+                  <StatusBadge status={shop.status} />
+                </div>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><span className="text-gray-400">PIN:</span> <code className="bg-gray-100 px-1.5 rounded">{shop.pin}</code></p>
+                  <p><span className="text-gray-400">Phone:</span> {shop.ownerPhone || "—"}</p>
+                  <p><span className="text-gray-400">Pages:</span> {shop.pagesTotal}</p>
+                  <p><span className="text-gray-400">Credits:</span> {shop.availableCredits}</p>
+                  <p><span className="text-gray-400">Expiring next month:</span> {shop.expiringNextMonth}</p>
+                </div>
+                <ShopActions
+                  shop={shop}
+                  deleteId={deleteId}
+                  setDeleteId={setDeleteId}
+                  isPending={isPending}
+                  run={run}
+                />
+              </div>
+            ))}
+          </div>
         </>
       )}
     </div>
