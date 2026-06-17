@@ -76,6 +76,37 @@
   animation: laser-scan-loop 2.4s ease-in-out infinite;
 }
 
+@keyframes gold-border-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gold-border-spin {
+  position: relative;
+  padding: 3px;
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 0;
+  box-shadow: 0 0 24px -6px rgba(255, 200, 60, 0.45);
+}
+
+.gold-border-spin::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  z-index: -1;
+  background: conic-gradient(from 0deg,
+      #6b4f00,
+      #ffd34d,
+      #fff7cc,
+      #d99a00,
+      #ffe98a,
+      #b97e00,
+      #6b4f00);
+  animation: gold-border-rotate 4s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     animation: none;
@@ -89,5 +120,9 @@
   .laser-scan {
     animation: none;
     opacity: 0;
+  }
+
+  .gold-border-spin::before {
+    animation: none;
   }
 }
