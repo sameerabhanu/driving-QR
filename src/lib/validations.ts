@@ -1,36 +1,69 @@
 import { z } from "zod";
 
-export const schoolSchema = z.object({
-  schoolName: z
+const optionalPhone = z
+  .string()
+  .trim()
+  .max(50, "Number is too long")
+  .regex(/^[+\d\s()-]+$/, "Invalid number format")
+  .optional()
+  .or(z.literal(""));
+
+const optionalUrl = z
+  .string()
+  .url("Please enter a valid URL")
+  .max(2000, "URL is too long")
+  .optional()
+  .or(z.literal(""));
+
+const customButtonSchema = z.object({
+  label: z
     .string()
-    .min(2, "School name must be at least 2 characters")
-    .max(255, "School name is too long"),
-  phoneNumber: z
+    .min(1, "Button label is required")
+    .max(50, "Label is too long"),
+  url: z
     .string()
-    .min(7, "Phone number is required")
-    .max(50, "Phone number is too long")
-    .regex(/^[+\d\s()-]+$/, "Invalid phone number format"),
-  whatsappNumber: z
-    .string()
-    .min(7, "WhatsApp number is required")
-    .max(50, "WhatsApp number is too long")
-    .regex(/^[+\d\s()-]+$/, "Invalid WhatsApp number format"),
-  googleMapsUrl: z
-    .string()
-    .url("Please enter a valid Google Maps URL")
+    .url("Invalid URL")
     .max(2000, "URL is too long"),
-  slug: z
+});
+
+export const pageSchema = z.object({
+  businessName: z
     .string()
-    .min(2, "Slug must be at least 2 characters")
-    .max(255, "Slug is too long")
-    .regex(
-      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Slug must be lowercase letters, numbers, and hyphens only"
-    ),
+    .min(2, "Business name must be at least 2 characters")
+    .max(255, "Business name is too long"),
+  businessType: z
+    .string()
+    .min(2, "Please describe your business type")
+    .max(100, "Business type is too long"),
+  phoneNumber: optionalPhone,
+  whatsappNumber: optionalPhone,
+  instagramUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
+  googleMapsUrl: optionalUrl,
+  customButtons: z.array(customButtonSchema).optional(),
+}).refine(
+  (data) => Boolean(data.phoneNumber || data.whatsappNumber || data.googleMapsUrl),
+  {
+    message: "Add at least one contact method (Phone, WhatsApp, or Maps)",
+    path: ["phoneNumber"],
+  }
+);
+
+export const shopSchema = z.object({
+  shopName: z
+    .string()
+    .min(2, "Shop name must be at least 2 characters")
+    .max(255, "Shop name is too long"),
+  ownerName: z
+    .string()
+    .min(2, "Owner name must be at least 2 characters")
+    .max(255, "Owner name is too long"),
 });
 
-export const loginSchema = z.object({
-  password: z.string().min(1, "Password is required"),
+export const pinLoginSchema = z.object({
+  pin: z.string().regex(/^\d{4,6}$/, "Enter your PIN"),
 });
 
-export type SchoolFormData = z.infer<typeof schoolSchema>;
+export type PageFormData = z.infer<typeof pageSchema>;
+export type ShopFormData = z.infer<typeof shopSchema>;
+export type CustomButton = z.infer<typeof customButtonSchema>;

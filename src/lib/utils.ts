@@ -1,23 +1,46 @@
-export function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+// Billing rule: a shop's first 5 client pages in a month are free; the 6th page
+// (and beyond) makes that month billable at the flat monthly fee.
+export const BILLING_FREE_LIMIT = 5;
+export const MONTHLY_FEE = 1000;
+
+const SHORT_CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"; // no look-alikes
+const SHORT_CODE_LENGTH = 7;
+
+// Generates a random URL-safe short code for a page (e.g. "k7m2p9q").
+export function generateShortCode(length: number = SHORT_CODE_LENGTH): string {
+  let code = "";
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  for (let i = 0; i < length; i++) {
+    code += SHORT_CODE_ALPHABET[bytes[i] % SHORT_CODE_ALPHABET.length];
+  }
+  return code;
 }
 
-export function calculateExpiryDate(createdAt: Date): Date {
-  const year = createdAt.getFullYear();
-  const month = createdAt.getMonth();
-  const day = createdAt.getDate();
+// "YYYY-MM" key for a given date, used as the billing period identifier.
+export function getMonthKey(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
 
-  if (day === 1) {
-    return new Date(year + 1, month, 1);
-  }
+// A page is billable in a month once the shop exceeds the free page limit.
+export function isBillable(pageCount: number): boolean {
+  return pageCount > BILLING_FREE_LIMIT;
+}
 
-  return new Date(year + 1, month + 1, 1);
+export function computeAmountDue(pageCount: number): number {
+  return isBillable(pageCount) ? MONTHLY_FEE : 0;
+}
+
+export function formatCurrency(amount: number): string {
+  return `₹${amount.toLocaleString("en-IN")}`;
+}
+
+export function formatMonthKey(monthKey: string): string {
+  const [year, month] = monthKey.split("-").map((n) => parseInt(n, 10));
+  if (!year || !month) return monthKey;
+  return `${MONTHS[month - 1]} ${year}`;
 }
 
 export function formatDate(date: Date | string): string {
@@ -44,20 +67,9 @@ export function getBaseUrl(): string {
   return url.replace(/\/$/, "");
 }
 
-export function getSchoolUrl(slug: string): string {
-  return `${getBaseUrl()}/${slug}`;
-}
-
-export function isExpired(expiryDate: string | Date): boolean {
-  const expiry = typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  expiry.setHours(0, 0, 0, 0);
-  return expiry < today;
-}
-
-export function updateSchoolStatus(expiryDate: string): "active" | "expired" {
-  return isExpired(expiryDate) ? "expired" : "active";
+// Public URL of a landing page from its short code, e.g. https://host/p/k7m2p9q
+export function getPageUrl(shortCode: string): string {
+  return `${getBaseUrl()}/p/${shortCode}`;
 }
 
 export const MONTHS = [

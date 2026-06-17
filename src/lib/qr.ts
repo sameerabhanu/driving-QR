@@ -1,24 +1,24 @@
 import QRCode from "qrcode";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { getSchoolUrl } from "./utils";
+import { getPageUrl } from "./utils";
 
-export async function generateQrCode(slug: string): Promise<{
+export async function generateQrCode(shortCode: string): Promise<{
   buffer: Buffer;
   path: string;
 }> {
-  const url = getSchoolUrl(slug);
+  const url = getPageUrl(shortCode);
   const buffer = await QRCode.toBuffer(url, {
     type: "png",
     width: 512,
     margin: 2,
     color: {
-      dark: "#1e3a8a",
+      dark: "#0f172a",
       light: "#ffffff",
     },
   });
 
-  const fileName = `${slug}.png`;
+  const fileName = `${shortCode}.png`;
   const relativePath = `/qr-codes/${fileName}`;
 
   try {
@@ -28,7 +28,7 @@ export async function generateQrCode(slug: string): Promise<{
     await writeFile(filePath, buffer);
   } catch {
     // Filesystem may be read-only on serverless hosts (e.g. Vercel).
-    // QR images are served via /api/qr/[slug] which regenerates on demand.
+    // QR images are served via /api/qr/[code] which regenerates on demand.
   }
 
   return {
@@ -37,14 +37,14 @@ export async function generateQrCode(slug: string): Promise<{
   };
 }
 
-export async function generateQrBuffer(slug: string): Promise<Buffer> {
-  const url = getSchoolUrl(slug);
+export async function generateQrBuffer(shortCode: string): Promise<Buffer> {
+  const url = getPageUrl(shortCode);
   return QRCode.toBuffer(url, {
     type: "png",
     width: 512,
     margin: 2,
     color: {
-      dark: "#1e3a8a",
+      dark: "#0f172a",
       light: "#ffffff",
     },
   });

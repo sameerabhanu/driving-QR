@@ -1,7 +1,8 @@
-import { LoginForm } from "@/components/admin/LoginForm";
+import { PinLoginForm } from "@/components/shell/PinLoginForm";
+import { shopLoginAction } from "@/actions/auth";
 
 export const metadata = {
-  title: "Admin Login",
+  title: "Reseller Login",
 };
 
 export default function AdminLoginPage() {
@@ -14,12 +15,12 @@ export default function AdminLoginPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-          <p className="mt-2 text-sm text-gray-500">Sign in to manage driving school pages</p>
+          <h1 className="text-2xl font-bold text-gray-900">Reseller Login</h1>
+          <p className="mt-2 text-sm text-gray-500">Enter your PIN to manage pages</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <LoginForm />
+          <PinLoginForm action={shopLoginAction} label="Shop PIN" maxLength={6} />
         </div>
       </div>
     </div>

@@ -1,13 +1,14 @@
 import { ImageResponse } from "next/og";
 import QRCode from "qrcode";
-import { getSchoolUrl } from "./utils";
+import { getPageUrl } from "./utils";
 
 const POSTER_WIDTH = 1080;
 const POSTER_HEIGHT = 1350;
 
 /**
- * Generates a lead-attracting marketing poster (PNG) with the school's QR code
- * embedded, ready to print or share.
+ * Generates a clean, white-label marketing poster (PNG) with the page's QR code
+ * embedded, ready to print or share. Driven by the business name and tagline so
+ * it works for any kind of business.
  */
 async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuffer> {
   const css = await (
@@ -31,10 +32,11 @@ async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuff
 }
 
 export async function generatePoster(
-  slug: string,
-  schoolName: string
+  shortCode: string,
+  businessName: string,
+  tagline?: string | null
 ): Promise<ImageResponse> {
-  const url = getSchoolUrl(slug);
+  const url = getPageUrl(shortCode);
 
   const qrDataUrl = await QRCode.toDataURL(url, {
     width: 560,
@@ -50,6 +52,9 @@ export async function generatePoster(
     loadGoogleFont("Inter", 600),
   ]);
 
+  const headline = businessName.toUpperCase();
+  const subline = tagline?.trim() || "Scan to connect with us instantly.";
+
   const element = (
     <div
       style={{
@@ -64,7 +69,7 @@ export async function generatePoster(
         padding: "96px 64px",
       }}
     >
-      {/* Hook line */}
+      {/* Business name */}
       <div
         style={{
           display: "flex",
@@ -73,16 +78,14 @@ export async function generatePoster(
           textAlign: "center",
           color: "#ffffff",
           fontFamily: "Anton",
-          fontSize: 56,
-          lineHeight: 1.25,
+          fontSize: 64,
+          lineHeight: 1.2,
           letterSpacing: 1,
           textTransform: "uppercase",
-          whiteSpace: "nowrap",
+          maxWidth: "100%",
         }}
       >
-        <div style={{ display: "flex" }}>YOUR PARTNER LOVES LONG DRIVES.</div>
-        <div style={{ display: "flex" }}>YOU LOVE YOUR PARTNER.</div>
-        <div style={{ display: "flex" }}>BUT CAN YOU DRIVE?</div>
+        {headline}
       </div>
 
       {/* Divider */}
@@ -92,12 +95,12 @@ export async function generatePoster(
           width: 120,
           height: 2,
           background: "rgba(255,255,255,0.35)",
-          marginTop: 72,
-          marginBottom: 72,
+          marginTop: 56,
+          marginBottom: 56,
         }}
       />
 
-      {/* Sub line */}
+      {/* Sub line / tagline */}
       <div
         style={{
           display: "flex",
@@ -109,7 +112,7 @@ export async function generatePoster(
           textAlign: "center",
         }}
       >
-        Start your driving journey today.
+        {subline}
       </div>
 
       {/* QR code */}
@@ -136,26 +139,7 @@ export async function generatePoster(
           textAlign: "center",
         }}
       >
-        SCAN TO BEGIN
-      </div>
-
-      {/* School name */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "Anton",
-          fontSize: 44,
-          letterSpacing: 2,
-          color: "#ffffff",
-          textTransform: "uppercase",
-          textAlign: "center",
-          marginTop: 96,
-          maxWidth: "100%",
-        }}
-      >
-        {schoolName.toUpperCase()}
+        SCAN TO CONNECT
       </div>
     </div>
   );
@@ -168,7 +152,7 @@ export async function generatePoster(
       { name: "Inter", data: interFont, weight: 600, style: "normal" },
     ],
     headers: {
-      "Content-Disposition": `attachment; filename="${slug}-poster.png"`,
+      "Content-Disposition": `attachment; filename="${shortCode}-poster.png"`,
       "Cache-Control": "no-store",
     },
   });

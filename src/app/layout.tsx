@@ -10,11 +10,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "QR Driving Pages",
-    template: "%s | QR Driving Pages",
+    default: "QR Pages",
+    template: "%s | QR Pages",
   },
   description:
-    "Turn every driving school vehicle into a student generator with custom QR landing pages.",
+    "White-label QR landing pages for resellers. Create pages for any business and manage monthly billing by shop.",
 };
 
 export default function RootLayout({

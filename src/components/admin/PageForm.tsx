@@ -1,0 +1,192 @@
+"use client";
+
+import { useActionState, useEffect, useState } from "react";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
+import type { CustomButton } from "@/db/schema";
+
+type FormResult = {
+  success: boolean;
+  error?: string;
+  data?: { id: string; shortCode: string } | undefined;
+};
+
+export interface PageInitialData {
+  businessName: string;
+  businessType: string;
+  phoneNumber?: string;
+  whatsappNumber?: string;
+  instagramUrl?: string;
+  youtubeUrl?: string;
+  googleMapsUrl?: string;
+  customButtons?: CustomButton[];
+}
+
+interface PageFormProps {
+  action: (prevState: FormResult, formData: FormData) => Promise<FormResult>;
+  submitLabel: string;
+  initialData?: PageInitialData;
+  showSuccessAlert?: boolean;
+  onSuccess?: (data: { id: string; shortCode: string }) => void;
+}
+
+const initialState: FormResult = { success: false };
+
+export function PageForm({
+  action,
+  submitLabel,
+  initialData,
+  showSuccessAlert,
+  onSuccess,
+}: PageFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState);
+  const [customButtons, setCustomButtons] = useState<CustomButton[]>(
+    initialData?.customButtons?.length ? initialData.customButtons : [{ label: "", url: "" }]
+  );
+
+  useEffect(() => {
+    if (state.success && state.data && onSuccess) {
+      const payload = state.data as { id?: string; shortCode?: string };
+      if (payload.id && payload.shortCode) {
+        onSuccess({ id: payload.id, shortCode: payload.shortCode });
+      }
+    }
+  }, [state, onSuccess]);
+
+  const updateButton = (index: number, field: "label" | "url", value: string) => {
+    setCustomButtons((prev) =>
+      prev.map((btn, i) => (i === index ? { ...btn, [field]: value } : btn))
+    );
+  };
+
+  const addButton = () => {
+    setCustomButtons((prev) => [...prev, { label: "", url: "" }]);
+  };
+
+  const removeButton = (index: number) => {
+    setCustomButtons((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <form action={formAction} className="space-y-5 max-w-2xl">
+      {state.error && <Alert variant="error" message={state.error} />}
+      {showSuccessAlert && state.success && (
+        <Alert variant="success" message="Page updated successfully." />
+      )}
+
+      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-semibold text-gray-900">Business Information</h3>
+
+        <Input
+          label="Business Name"
+          name="businessName"
+          defaultValue={initialData?.businessName}
+          required
+          placeholder="e.g. Sunrise Salon"
+        />
+
+        <Input
+          label="Business Type"
+          name="businessType"
+          defaultValue={initialData?.businessType}
+          required
+          placeholder="e.g. Hair Salon, Plumber, Restaurant, Fitness Studio"
+          description="Describe what type of business this is. AI will generate relevant benefits."
+        />
+      </div>
+
+      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-semibold text-gray-900">Contact Information</h3>
+
+        <Input
+          label="Phone Number (optional)"
+          name="phoneNumber"
+          type="tel"
+          defaultValue={initialData?.phoneNumber}
+          placeholder="+91 98765 43210"
+        />
+
+        <Input
+          label="WhatsApp Number (optional)"
+          name="whatsappNumber"
+          type="tel"
+          defaultValue={initialData?.whatsappNumber}
+          placeholder="+91 98765 43210"
+        />
+
+        <Input
+          label="Google Maps URL (optional)"
+          name="googleMapsUrl"
+          type="url"
+          defaultValue={initialData?.googleMapsUrl}
+          placeholder="https://maps.google.com/..."
+        />
+
+        <Input
+          label="Instagram URL (optional)"
+          name="instagramUrl"
+          type="url"
+          defaultValue={initialData?.instagramUrl}
+          placeholder="https://instagram.com/yourprofile"
+        />
+
+        <Input
+          label="YouTube Channel (optional)"
+          name="youtubeUrl"
+          type="url"
+          defaultValue={initialData?.youtubeUrl}
+          placeholder="https://youtube.com/c/yourchannel"
+        />
+
+        <p className="text-xs text-gray-500">
+          Add at least one contact method (Phone, WhatsApp, or Maps).
+        </p>
+      </div>
+
+      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-semibold text-gray-900">Custom Buttons (Optional)</h3>
+        <p className="text-sm text-gray-600">
+          Add custom buttons beyond standard contact options.
+        </p>
+
+        {customButtons.map((button, index) => (
+          <div key={index} className="flex gap-2">
+            <Input
+              name="customButtonLabels"
+              value={button.label}
+              onChange={(e) => updateButton(index, "label", e.target.value)}
+              placeholder="e.g. Website"
+              className="flex-1"
+            />
+            <Input
+              name="customButtonUrls"
+              value={button.url}
+              onChange={(e) => updateButton(index, "url", e.target.value)}
+              placeholder="https://..."
+              type="url"
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => removeButton(index)}
+              aria-label="Remove button"
+            >
+              ✕
+            </Button>
+          </div>
+        ))}
+
+        <Button type="button" variant="secondary" size="sm" onClick={addButton}>
+          + Add Button
+        </Button>
+      </div>
+
+      <Button type="submit" loading={isPending} size="lg">
+        {submitLabel}
+      </Button>
+    </form>
+  );
+}

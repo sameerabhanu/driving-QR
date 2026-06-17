@@ -1,25 +1,22 @@
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import { StatsCards } from "@/components/admin/StatsCards";
-import { SchoolsTable } from "@/components/admin/SchoolsTable";
-import { getDashboardStats, getAllSchools } from "@/actions/schools";
+import { AdminShell } from "@/components/admin/AdminShell";
+import { ShopStatsCards } from "@/components/admin/ShopStatsCards";
+import { PagesTable } from "@/components/admin/PagesTable";
+import { getShopDashboardStats, getShopPages } from "@/actions/pages";
 
 export const metadata = {
   title: "Dashboard",
 };
 
 export default async function AdminDashboardPage() {
-  const [stats, schools] = await Promise.all([
-    getDashboardStats(),
-    getAllSchools(),
+  const [stats, pages] = await Promise.all([
+    getShopDashboardStats(),
+    getShopPages(),
   ]);
 
   return (
-    <AdminLayout
-      title="Dashboard"
-      description="Overview of all driving school landing pages"
-    >
-      <StatsCards stats={stats} />
-      <SchoolsTable schools={schools} />
-    </AdminLayout>
+    <AdminShell title="Dashboard" description="Manage your client landing pages">
+      <ShopStatsCards stats={stats} />
+      <PagesTable pages={pages} />
+    </AdminShell>
   );
 }

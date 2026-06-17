@@ -3,41 +3,41 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { schools } from "@/db/schema";
+import { pages } from "@/db/schema";
 import { generateQrBuffer } from "@/lib/qr";
 import { generatePoster } from "@/lib/poster";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ code: string }> }
 ) {
-  const { slug } = await params;
+  const { code } = await params;
 
-  const [school] = await db
+  const [page] = await db
     .select()
-    .from(schools)
-    .where(eq(schools.slug, slug))
+    .from(pages)
+    .where(eq(pages.shortCode, code))
     .limit(1);
 
-  if (!school) {
-    return NextResponse.json({ error: "School not found" }, { status: 404 });
+  if (!page) {
+    return NextResponse.json({ error: "Page not found" }, { status: 404 });
   }
 
   const download = request.nextUrl.searchParams.get("download") === "1";
 
-  // For downloads, deliver a finished, lead-attracting marketing poster
-  // with the QR code embedded instead of the bare QR image.
+  // For downloads, deliver a finished, white-label marketing poster with the
+  // QR code embedded instead of the bare QR image.
   if (download) {
-    return generatePoster(slug, school.schoolName);
+    return generatePoster(code, page.businessName, page.tagline);
   }
 
   let buffer: Buffer;
 
   try {
-    const filePath = path.join(process.cwd(), "public", school.qrCodePath.replace(/^\//, ""));
+    const filePath = path.join(process.cwd(), "public", page.qrCodePath.replace(/^\//, ""));
     buffer = await readFile(filePath);
   } catch {
-    buffer = await generateQrBuffer(slug);
+    buffer = await generateQrBuffer(code);
   }
 
   const headers: HeadersInit = {

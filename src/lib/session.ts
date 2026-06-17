@@ -1,12 +1,13 @@
-const SESSION_COOKIE = "admin_session";
+const SHOP_SESSION_COOKIE = "shop_session";
+const SUPER_SESSION_COOKIE = "super_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 
 function getSecret(): string {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password) {
-    throw new Error("ADMIN_PASSWORD is not configured");
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    throw new Error("SESSION_SECRET is not configured");
   }
-  return password;
+  return secret;
 }
 
 async function sign(payload: string): Promise<string> {
@@ -24,25 +25,28 @@ async function sign(payload: string): Promise<string> {
     .join("");
 }
 
-export async function createSessionToken(): Promise<string> {
+// Creates a signed session token bound to a subject (e.g. a shop id, or "super").
+export async function createSessionToken(subject: string): Promise<string> {
   const expires = Date.now() + SESSION_MAX_AGE * 1000;
-  const payload = `authenticated:${expires}`;
+  const payload = `${encodeURIComponent(subject)}:${expires}`;
   const signature = await sign(payload);
   return `${payload}:${signature}`;
 }
 
-export async function verifySessionToken(token: string): Promise<boolean> {
+// Verifies a token and returns its subject, or null if invalid/expired.
+export async function readSessionSubject(token: string): Promise<string | null> {
   const parts = token.split(":");
-  if (parts.length !== 3) return false;
+  if (parts.length !== 3) return null;
 
-  const [label, expiresStr, signature] = parts;
-  if (label !== "authenticated") return false;
+  const [subjectEncoded, expiresStr, signature] = parts;
 
   const expires = parseInt(expiresStr, 10);
-  if (isNaN(expires) || Date.now() > expires) return false;
+  if (isNaN(expires) || Date.now() > expires) return null;
 
-  const expectedSignature = await sign(`${label}:${expiresStr}`);
-  return signature === expectedSignature;
+  const expectedSignature = await sign(`${subjectEncoded}:${expiresStr}`);
+  if (signature !== expectedSignature) return null;
+
+  return decodeURIComponent(subjectEncoded);
 }
 
-export { SESSION_COOKIE, SESSION_MAX_AGE };
+export { SHOP_SESSION_COOKIE, SUPER_SESSION_COOKIE, SESSION_MAX_AGE };
