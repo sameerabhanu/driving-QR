@@ -213,7 +213,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
                 <AutoFitText
                   text={page.businessName.toUpperCase()}
                   minSize={12}
-                  maxSize={56}
+                  maxSize={44}
                   className="w-full text-center font-semibold tracking-[0.18em] text-white"
                 />
               </div>
@@ -232,7 +232,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
                               className="group flex items-center gap-2.5 py-1 text-white/90 transition-colors hover:text-white"
                             >
                               <span className="text-white/70">{item.icon}</span>
-                              <span className="truncate text-sm font-medium text-white/85">{item.value}</span>
+                              <span className="truncate text-[13px] font-medium text-white/85">{item.value}</span>
                             </a>
                           </li>
                         );
@@ -255,7 +255,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
         {/* ── Tagline ── */}
         {page.tagline && (
           <section className="reveal mt-7 text-center" style={{ animationDelay: "0.14s" }}>
-            <p className="mx-auto max-w-sm text-lg font-semibold text-white/70">{page.tagline}</p>
+            <p className="mx-auto max-w-sm text-base font-semibold text-white/70">{page.tagline}</p>
           </section>
         )}
 
@@ -264,7 +264,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
           <section className="reveal mt-7" style={{ animationDelay: "0.22s" }}>
             <ul className="space-y-3.5">
               {page.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-base font-medium text-white/75">
+                <li key={idx} className="flex items-center gap-3 text-sm font-medium text-white/75">
                   <span className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -287,7 +287,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
                   href={action.href}
                   target={action.href.startsWith("http") ? "_blank" : undefined}
                   rel={action.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className={`inline-flex h-14 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition-colors ${action.className}`}
+                  className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl px-3 text-xs font-semibold transition-colors ${action.className}`}
                   aria-label={action.label}
                   title={action.label}
                 >
@@ -301,7 +301,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
 
         {/* ── Footer ── */}
         <footer className="mt-9 border-t border-white/10 pt-5 text-center">
-          <p className="reveal text-sm font-bold uppercase tracking-[0.18em] text-white/25" style={{ animationDelay: "0.46s" }}>
+          <p className="reveal text-xs font-bold uppercase tracking-[0.18em] text-white/25" style={{ animationDelay: "0.46s" }}>
             Scan. Visit. Connect.
           </p>
         </footer>
