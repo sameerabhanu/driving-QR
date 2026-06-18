@@ -209,7 +209,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
         <section className="reveal" style={{ animationDelay: "0.08s" }}>
           <div className="gold-border-spin relative overflow-hidden">
             <div className="overflow-hidden rounded-[11px] bg-[radial-gradient(120%_120%_at_100%_0%,rgba(255,255,255,0.08),rgba(255,255,255,0)_46%),linear-gradient(130deg,#0f1012_0%,#171b22_58%,#0b0c0f_100%)] text-white shadow-[0_18px_40px_-24px_rgba(2,6,23,0.95)]">
-              <div className="flex items-center justify-center border-b border-white/10 px-5 py-4">
+              <div className="flex items-center justify-center border-b border-white/10 px-5 py-3">
                 <AutoFitText
                   text={page.businessName.toUpperCase()}
                   minSize={12}
@@ -217,10 +217,10 @@ export default async function BusinessLandingPage({ params }: PageProps) {
                   className="w-full text-center font-semibold tracking-[0.18em] text-white"
                 />
               </div>
-              <div className="grid min-h-[210px] grid-cols-5">
-                <div className="col-span-3 flex flex-col justify-center px-5 py-4">
+              <div className="grid min-h-[160px] grid-cols-5">
+                <div className="col-span-3 flex flex-col justify-center px-5 py-3">
                   {contactRows.length > 0 ? (
-                    <ul className="space-y-2.5">
+                    <ul className="space-y-1">
                       {contactRows.slice(0, 5).map((item) => {
                         const isExternal = item.href?.startsWith("http");
                         return (
@@ -229,7 +229,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
                               href={item.href ?? undefined}
                               target={isExternal ? "_blank" : undefined}
                               rel={isExternal ? "noopener noreferrer" : undefined}
-                              className="group flex items-center gap-2.5 py-1 text-white/90 transition-colors hover:text-white"
+                              className="group flex items-center gap-2 py-0.5 text-white/90 transition-colors hover:text-white"
                             >
                               <span className="text-white/70">{item.icon}</span>
                               <span className="truncate text-[13px] font-medium text-white/85">{item.value}</span>
@@ -254,19 +254,19 @@ export default async function BusinessLandingPage({ params }: PageProps) {
 
         {/* ── Tagline ── */}
         {page.tagline && (
-          <section className="reveal mt-7 text-center" style={{ animationDelay: "0.14s" }}>
+          <section className="reveal mt-5 text-center" style={{ animationDelay: "0.14s" }}>
             <p className="mx-auto max-w-sm text-base font-semibold text-white/70">{page.tagline}</p>
           </section>
         )}
 
         {/* ── Benefits ── */}
         {page.benefits && page.benefits.length > 0 && (
-          <section className="reveal mt-7" style={{ animationDelay: "0.22s" }}>
-            <ul className="space-y-3.5">
+          <section className="reveal mt-5" style={{ animationDelay: "0.22s" }}>
+            <ul className="space-y-2">
               {page.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-sm font-medium text-white/75">
-                  <span className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} aria-hidden="true">
+                <li key={idx} className="flex items-center gap-2.5 text-sm font-medium text-white/75">
+                  <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
@@ -279,20 +279,20 @@ export default async function BusinessLandingPage({ params }: PageProps) {
 
         {/* ── CTA buttons ── */}
         {coreActions.length > 0 && (
-          <section className="mt-8">
-            <div className="reveal grid grid-cols-3 gap-3" style={{ animationDelay: "0.3s" }}>
+          <section className="mt-6">
+            <div className="reveal grid grid-cols-3 gap-2.5" style={{ animationDelay: "0.3s" }}>
               {coreActions.map((action) => (
                 <a
                   key={action.key}
                   href={action.href}
                   target={action.href.startsWith("http") ? "_blank" : undefined}
                   rel={action.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl px-3 text-xs font-semibold transition-colors ${action.className}`}
+                  className={`inline-flex flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-semibold leading-tight transition-colors ${action.className}`}
                   aria-label={action.label}
                   title={action.label}
                 >
                   {action.icon}
-                  <span className="truncate">{action.label}</span>
+                  <span>{action.label}</span>
                 </a>
               ))}
             </div>
@@ -300,7 +300,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
         )}
 
         {/* ── Footer ── */}
-        <footer className="mt-9 border-t border-white/10 pt-5 text-center">
+        <footer className="mt-6 border-t border-white/10 pt-4 text-center">
           <p className="reveal text-xs font-bold uppercase tracking-[0.18em] text-white/25" style={{ animationDelay: "0.46s" }}>
             Scan. Visit. Connect.
           </p>
