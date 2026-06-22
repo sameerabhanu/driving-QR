@@ -49,9 +49,8 @@ export interface CustomButton {
 // AI-generated tagline and benefits are created on page creation.
 export const pages = pgTable("pages", {
   id: uuid("id").primaryKey().defaultRandom(),
-  shopId: uuid("shop_id")
-    .notNull()
-    .references(() => shops.id, { onDelete: "cascade" }),
+  // Nullable: pages created directly by the super admin have no owning shop.
+  shopId: uuid("shop_id").references(() => shops.id, { onDelete: "cascade" }),
   shortCode: varchar("short_code", { length: 16 }).notNull().unique(),
   businessName: varchar("business_name", { length: 255 }).notNull(),
   businessType: varchar("business_type", { length: 100 }).notNull(),

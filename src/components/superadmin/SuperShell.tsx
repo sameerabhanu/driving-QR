@@ -4,6 +4,8 @@ import { superLogoutAction } from "@/actions/auth";
 const navItems: NavItem[] = [
   { href: "/superadmin", label: "Shops", icon: "shops", exact: true },
   { href: "/superadmin/shops/new", label: "Add Shop", icon: "plus" },
+  { href: "/superadmin/pages", label: "Pages", icon: "dashboard", exact: true },
+  { href: "/superadmin/pages/new", label: "Add Page", icon: "plus" },
 ];
 
 interface SuperShellProps {

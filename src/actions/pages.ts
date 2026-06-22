@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq, and, desc, gte, lt, sql } from "drizzle-orm";
+import { eq, and, desc, gte, lt, sql, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import {
   pages,
@@ -11,8 +11,8 @@ import {
   type Page,
   type CustomButton,
 } from "@/db/schema";
-import { pageSchema } from "@/lib/validations";
-import { getCurrentShop } from "@/lib/auth";
+import { pageSchema, superPageSchema } from "@/lib/validations";
+import { getCurrentShop, isSuperAuthenticated } from "@/lib/auth";
 import { generateQrCode } from "@/lib/qr";
 import { generateShortCode, computeExpiryDate } from "@/lib/utils";
 import { generateBusinessContent } from "@/lib/ai";
@@ -181,6 +181,217 @@ export async function createPageAction(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create page",
+    };
+  }
+}
+
+// Super admin pages: manual content, no shop, no credit limits.
+export async function createSuperPageAction(
+  _prevState: ActionResult<{ id: string; shortCode: string }> | ActionResult,
+  formData: FormData
+): Promise<ActionResult<{ id: string; shortCode: string }>> {
+  try {
+    if (!(await isSuperAuthenticated())) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const customButtons = parseCustomButtons(formData);
+    const benefits = formData
+      .getAll("benefits")
+      .map((b) => String(b).trim())
+      .filter(Boolean);
+
+    const parsed = superPageSchema.safeParse({
+      businessName: formData.get("businessName"),
+      businessType: formData.get("businessType"),
+      tagline: formData.get("tagline"),
+      benefits,
+      phoneNumber: formData.get("phoneNumber"),
+      whatsappNumber: formData.get("whatsappNumber"),
+      instagramUrl: formData.get("instagramUrl"),
+      youtubeUrl: formData.get("youtubeUrl"),
+      googleMapsUrl: formData.get("googleMapsUrl"),
+      customButtons,
+    });
+
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.errors[0]?.message ?? "Invalid input",
+      };
+    }
+
+    const shortCode = await generateUniqueShortCode();
+    const { path: qrCodePath } = await generateQrCode(shortCode);
+
+    // Super admin pages have no credit/renewal lifecycle, so they never expire.
+    const expiresAt = new Date(Date.UTC(new Date().getUTCFullYear() + 100, 0, 1));
+
+    const [page] = await db
+      .insert(pages)
+      .values({
+        shopId: null,
+        shortCode,
+        businessName: parsed.data.businessName,
+        businessType: parsed.data.businessType,
+        tagline: parsed.data.tagline,
+        benefits: parsed.data.benefits,
+        phoneNumber: parsed.data.phoneNumber || null,
+        whatsappNumber: parsed.data.whatsappNumber || null,
+        instagramUrl: parsed.data.instagramUrl || null,
+        youtubeUrl: parsed.data.youtubeUrl || null,
+        googleMapsUrl: parsed.data.googleMapsUrl || null,
+        customButtons,
+        qrCodePath,
+        expiresAt,
+      })
+      .returning();
+
+    await db.insert(usedSlugs).values({ shortCode, firstPageId: page.id });
+
+    revalidatePath("/superadmin");
+
+    return {
+      success: true,
+      data: { id: page.id, shortCode: page.shortCode },
+    };
+  } catch (error) {
+    console.error("Create super page error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create page",
+    };
+  }
+}
+
+// Lists every page created directly by the super admin (no owning shop).
+export async function getSuperPages(): Promise<Page[]> {
+  if (!(await isSuperAuthenticated())) {
+    throw new Error("Unauthorized");
+  }
+  return db
+    .select()
+    .from(pages)
+    .where(isNull(pages.shopId))
+    .orderBy(desc(pages.createdAt));
+}
+
+// Fetches a single super admin page (no owning shop) for editing.
+export async function getSuperPageById(id: string): Promise<Page | null> {
+  if (!(await isSuperAuthenticated())) {
+    throw new Error("Unauthorized");
+  }
+  const [page] = await db
+    .select()
+    .from(pages)
+    .where(and(eq(pages.id, id), isNull(pages.shopId)))
+    .limit(1);
+  return page ?? null;
+}
+
+export async function updateSuperPageAction(
+  id: string,
+  _prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  try {
+    if (!(await isSuperAuthenticated())) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const customButtons = parseCustomButtons(formData);
+    const benefits = formData
+      .getAll("benefits")
+      .map((b) => String(b).trim())
+      .filter(Boolean);
+
+    const parsed = superPageSchema.safeParse({
+      businessName: formData.get("businessName"),
+      businessType: formData.get("businessType"),
+      tagline: formData.get("tagline"),
+      benefits,
+      phoneNumber: formData.get("phoneNumber"),
+      whatsappNumber: formData.get("whatsappNumber"),
+      instagramUrl: formData.get("instagramUrl"),
+      youtubeUrl: formData.get("youtubeUrl"),
+      googleMapsUrl: formData.get("googleMapsUrl"),
+      customButtons,
+    });
+
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.errors[0]?.message ?? "Invalid input",
+      };
+    }
+
+    // Scope to super admin pages only (shopId IS NULL).
+    const [current] = await db
+      .select()
+      .from(pages)
+      .where(and(eq(pages.id, id), isNull(pages.shopId)))
+      .limit(1);
+
+    if (!current) {
+      return { success: false, error: "Page not found" };
+    }
+
+    await db
+      .update(pages)
+      .set({
+        businessName: parsed.data.businessName,
+        businessType: parsed.data.businessType,
+        tagline: parsed.data.tagline,
+        benefits: parsed.data.benefits,
+        phoneNumber: parsed.data.phoneNumber || null,
+        whatsappNumber: parsed.data.whatsappNumber || null,
+        instagramUrl: parsed.data.instagramUrl || null,
+        youtubeUrl: parsed.data.youtubeUrl || null,
+        googleMapsUrl: parsed.data.googleMapsUrl || null,
+        customButtons,
+      })
+      .where(and(eq(pages.id, id), isNull(pages.shopId)));
+
+    revalidatePath("/superadmin/pages");
+    revalidatePath(`/p/${current.shortCode}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Update super page error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update page",
+    };
+  }
+}
+
+export async function deleteSuperPageAction(id: string): Promise<ActionResult> {
+  try {
+    if (!(await isSuperAuthenticated())) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const [page] = await db
+      .select()
+      .from(pages)
+      .where(and(eq(pages.id, id), isNull(pages.shopId)))
+      .limit(1);
+
+    if (!page) {
+      return { success: false, error: "Page not found" };
+    }
+
+    await db.delete(pages).where(and(eq(pages.id, id), isNull(pages.shopId)));
+
+    revalidatePath("/superadmin/pages");
+    revalidatePath(`/p/${page.shortCode}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Delete super page error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete page",
     };
   }
 }
