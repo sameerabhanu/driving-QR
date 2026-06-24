@@ -16,15 +16,15 @@ export function amountFromCredits(credits: number): number {
   return credits * CREDIT_UNIT_PRICE_INR;
 }
 
-// Computes a page's expiry: 2 years after the anchor, snapped to the 1st of a
+// Computes a page's expiry: 5 years after the anchor, snapped to the 1st of a
 // month (UTC). If the anchor is already the 1st, keep that month; otherwise roll
-// to the 1st of the next month — then add 2 years.
+// to the 1st of the next month — then add 5 years.
 export function computeExpiryDate(anchor: Date = new Date()): Date {
   const year = anchor.getUTCFullYear();
   const month = anchor.getUTCMonth();
   const day = anchor.getUTCDate();
   const baseMonth = day === 1 ? month : month + 1;
-  return new Date(Date.UTC(year + 2, baseMonth, 1, 0, 0, 0, 0));
+  return new Date(Date.UTC(year + 5, baseMonth, 1, 0, 0, 0, 0));
 }
 
 const SHORT_CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"; // no look-alikes

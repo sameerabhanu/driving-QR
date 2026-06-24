@@ -204,6 +204,7 @@ export async function createSuperPageAction(
     const parsed = superPageSchema.safeParse({
       businessName: formData.get("businessName"),
       businessType: formData.get("businessType"),
+      slug: formData.get("slug"),
       tagline: formData.get("tagline"),
       benefits,
       phoneNumber: formData.get("phoneNumber"),
@@ -221,7 +222,26 @@ export async function createSuperPageAction(
       };
     }
 
-    const shortCode = await generateUniqueShortCode();
+    // Use the chosen slug if provided (after checking it's free), otherwise
+    // fall back to a generated code.
+    let shortCode: string;
+    if (parsed.data.slug) {
+      const [taken] = await db
+        .select({ shortCode: usedSlugs.shortCode })
+        .from(usedSlugs)
+        .where(eq(usedSlugs.shortCode, parsed.data.slug))
+        .limit(1);
+      if (taken) {
+        return {
+          success: false,
+          error: "That slug is already taken. Please choose another.",
+        };
+      }
+      shortCode = parsed.data.slug;
+    } else {
+      shortCode = await generateUniqueShortCode();
+    }
+
     const { path: qrCodePath } = await generateQrCode(shortCode);
 
     // Super admin pages have no credit/renewal lifecycle, so they never expire.

@@ -51,7 +51,7 @@ export const pages = pgTable("pages", {
   id: uuid("id").primaryKey().defaultRandom(),
   // Nullable: pages created directly by the super admin have no owning shop.
   shopId: uuid("shop_id").references(() => shops.id, { onDelete: "cascade" }),
-  shortCode: varchar("short_code", { length: 16 }).notNull().unique(),
+  shortCode: varchar("short_code", { length: 64 }).notNull().unique(),
   businessName: varchar("business_name", { length: 255 }).notNull(),
   businessType: varchar("business_type", { length: 100 }).notNull(),
   tagline: varchar("tagline", { length: 255 }).notNull(),
@@ -95,7 +95,7 @@ export const creditTransactions = pgTable("credit_transactions", {
 // Permanent reservation of every short code ever used, so a slug is never
 // reissued even after its page is deleted/expired.
 export const usedSlugs = pgTable("used_slugs", {
-  shortCode: varchar("short_code", { length: 16 }).primaryKey(),
+  shortCode: varchar("short_code", { length: 64 }).primaryKey(),
   firstPageId: uuid("first_page_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

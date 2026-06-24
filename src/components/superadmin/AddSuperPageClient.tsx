@@ -44,6 +44,7 @@ export function AddSuperPageClient() {
       action={createSuperPageAction}
       submitLabel="Generate Page"
       manualContent
+      allowSlug
       onSuccess={(data) => setCreated(data)}
     />
   );
